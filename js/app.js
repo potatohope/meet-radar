@@ -29,7 +29,8 @@ function showView(id) {
 const dropZone = $("dropZone");
 const fileInput = $("fileInput");
 
-dropZone.addEventListener("click", () => fileInput.click());
+// 说明：<label class="drop-zone"> 已包裹 <input type="file">，点击 label 会原生触发文件选择，
+// 因此这里不再手动 fileInput.click()（否则移动端/iOS 会双重触发，选择器一闪而过甚至打不开）。
 dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("drag"); });
 dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag"));
 dropZone.addEventListener("drop", (e) => {
@@ -41,13 +42,16 @@ fileInput.addEventListener("change", () => {
 });
 
 function handleFile(file) {
-  if (!file.type.startsWith("image/")) { toast("请上传图片文件哦"); return; }
+  // iOS 相册照片 file.type 可能为空字符串，仅在有 type 且非图片时才拒绝
+  if (file.type && !file.type.startsWith("image/")) { toast("请上传图片文件哦"); return; }
   compressImage(file).then(({ dataUrl, base64 }) => {
     photoDataUrl = dataUrl;
     photoBase64 = base64;
     $("previewImg").src = dataUrl;
     $("dzPreview").style.display = "block";
     $("dzEmpty").style.display = "none";
+  }).catch(() => {
+    toast("图片读取失败，请换一张试试");
   });
 }
 
@@ -55,21 +59,34 @@ function compressImage(file, maxW = 800, quality = 0.82) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
+      const rawDataUrl = e.target.result;
       const img = new Image();
       img.onload = () => {
-        let w = img.width, h = img.height;
-        const scale = Math.min(1, maxW / Math.max(w, h));
-        w = Math.round(w * scale); h = Math.round(h * scale);
-        const canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL("image/jpeg", quality);
-        resolve({ dataUrl, base64: dataUrl.split(",")[1] });
+        try {
+          let w = img.width, h = img.height;
+          const scale = Math.min(1, maxW / Math.max(w, h));
+          w = Math.round(w * scale); h = Math.round(h * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve({ dataUrl, base64: dataUrl.split(",")[1] });
+        } catch (err) {
+          // canvas 压缩失败（如超大图内存不足），降级用原图
+          resolve({ dataUrl: rawDataUrl, base64: String(rawDataUrl).split(",")[1] || "" });
+        }
       };
-      img.onerror = reject;
-      img.src = e.target.result;
+      img.onerror = () => {
+        // 浏览器无法解码（如个别 HEIC）时，仍返回原始 dataURL 作为兜底
+        if (rawDataUrl && String(rawDataUrl).indexOf("data:image") === 0) {
+          resolve({ dataUrl: rawDataUrl, base64: String(rawDataUrl).split(",")[1] || "" });
+        } else {
+          reject(new Error("无法解析图片"));
+        }
+      };
+      img.src = rawDataUrl;
     };
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error("文件读取失败"));
     reader.readAsDataURL(file);
   });
 }
