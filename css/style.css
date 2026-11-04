@@ -281,3 +281,22 @@ main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 8px 16px
 @media (max-width: 420px) {
   .hero-title { font-size: 26px; }
 }
+
+/* 分享这一页按钮 */
+.btn-share-page {
+  margin-top: 24px; display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; font-size: 14px; font-weight: 600; color: var(--primary-deep);
+  background: #fff; border: 1px dashed #f0b58a; border-radius: 999px; cursor: pointer;
+  transition: all .15s;
+}
+.btn-share-page:hover { border-color: var(--primary); background: #fff7ee; }
+
+/* 彩蛋页 */
+.egg-card {
+  margin-top: 26px; padding: 26px 22px; border-radius: 16px; text-align: center;
+  background: linear-gradient(135deg, #fff3e6, #ffe4ee);
+  border: 1px dashed #f0b58a;
+}
+.egg-home { font-size: 22px; font-weight: 800; color: var(--primary-deep); line-height: 1.5; }
+.egg-city { margin-top: 14px; font-size: 15px; font-weight: 600; color: #57453a; }
+.egg-reason { margin-top: 10px; font-size: 14px; color: var(--ink-2); line-height: 1.6; }
