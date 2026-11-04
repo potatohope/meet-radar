@@ -11,7 +11,9 @@ let species = "猫咪";
 let lastResult = null;
 let radarChart = null;
 let currentPage = 0;
-let pageCount = 8;
+let shareIdx = 0;          // 当前分享的是哪一页
+let audioCtx = null;
+const pageCount = 9;
 
 const $ = (id) => document.getElementById(id);
 
@@ -141,8 +143,12 @@ function renderPage(idx) {
   const stage = $("reportStage");
   stage.innerHTML = buildPage(idx, r);
   stage.classList.remove("anim");
-  void stage.offsetWidth; // 触发重排以重放入场动画
+  void stage.offsetWidth;
   stage.classList.add("anim");
+
+  // 翻页反馈
+  playFlip();
+  vibrate();
 
   // 进度
   $("progressFill").style.width = ((idx + 1) / pageCount * 100) + "%";
@@ -159,7 +165,6 @@ function renderPage(idx) {
     next.textContent = "下一页 ›";
   }
 
-  // 雷达页需要可见时再绘制
   if (idx === 1) drawRadar(r.scores || {});
   if (idx === pageCount - 1) generatePoster();
 
@@ -167,17 +172,16 @@ function renderPage(idx) {
 }
 
 function buildPage(idx, r) {
-  const s = r.scores || {};
-  const dc = r.dimensionComments || {};
   switch (idx) {
     case 0: return coverPage(r);
-    case 1: return radarPage(r, s, dc);
+    case 1: return radarPage(r);
     case 2: return tagsPage(r);
     case 3: return innerPage(r);
     case 4: return pastLifePage(r);
     case 5: return seeYouPage(r);
     case 6: return guidePage(r);
-    case 7: return finalPage(r);
+    case 7: return easterEggPage(r);
+    case 8: return finalPage(r);
     default: return "";
   }
 }
@@ -200,11 +204,14 @@ function coverPage(r) {
       <h2 class="cover-type">${esc(r.type || "神秘型")}</h2>
       <p class="cover-tagline">${esc(r.tagline || "")}</p>
       <p class="cover-name">—— ${esc(r.name || "毛孩子")} ——</p>
+      <button class="btn-share-page" data-action="share">📤 分享海报</button>
     </div>`;
 }
 
 /* 第 2 页：六维画像 */
-function radarPage(r, s, dc) {
+function radarPage(r) {
+  const s = r.scores || {};
+  const dc = r.dimensionComments || {};
   const dims = DIMENSIONS.map((d) => `
     <div class="dim-item">
       <div class="dim-top"><span class="dim-name">${d}</span><span class="dim-score">${s[d] ?? 50}</span></div>
@@ -216,6 +223,7 @@ function radarPage(r, s, dc) {
       <h2 class="page-title">每个维度，<br />都是它的小宇宙</h2>
       <div class="radar-wrap"><canvas id="radarChart"></canvas></div>
       <div class="dim-list">${dims}</div>
+      <button class="btn-share-page" data-action="share-page">📤 分享这一页</button>
     </div>`;
 }
 
@@ -229,6 +237,7 @@ function tagsPage(r) {
       <h2 class="page-title">贴在它身上<br />刚刚好的标签</h2>
       <div class="tag-wall">${tags}</div>
       <ul class="comment-list">${comments}</ul>
+      <button class="btn-share-page" data-action="share-page">📤 分享这一页</button>
     </div>`;
 }
 
@@ -241,6 +250,7 @@ function innerPage(r) {
       <div class="monologue-card">${esc(r.monologue || "")}</div>
       <div class="mini-card"><span class="mini-ico">💬</span><div><b>口头禅</b><p>${esc(r.catchphrase || "")}</p></div></div>
       <div class="mini-card"><span class="mini-ico">🤫</span><div><b>小秘密</b><p>${esc(r.secret || "")}</p></div></div>
+      <button class="btn-share-page" data-action="share-page">📤 分享这一页</button>
     </div>`;
 }
 
@@ -252,6 +262,7 @@ function pastLifePage(r) {
       <h2 class="page-title">上辈子的它<br />可能是个大人物</h2>
       <div class="pastlife-badge">${esc(r.pastLife || "")}</div>
       <p class="story">${esc(r.pastLifeStory || "")}</p>
+      <button class="btn-share-page" data-action="share-page">📤 分享这一页</button>
     </div>`;
 }
 
@@ -262,6 +273,7 @@ function seeYouPage(r) {
       <div class="page-eyebrow">👀 在它眼里，你是…</div>
       <h2 class="page-title">你可能不知道<br />它有多依赖你</h2>
       <div class="see-card">${esc(r.howItSeesYou || "")}</div>
+      <button class="btn-share-page" data-action="share-page">📤 分享这一页</button>
     </div>`;
 }
 
@@ -273,10 +285,26 @@ function guidePage(r) {
       <h2 class="page-title">读懂它<br />就这几招</h2>
       <div class="advice-card">${esc(r.advice || "")}</div>
       <div class="mini-card"><span class="mini-ico">🎯</span><div><b>隐藏天赋</b><p>${esc(r.talents || "")}</p></div></div>
+      <button class="btn-share-page" data-action="share-page">📤 分享这一页</button>
     </div>`;
 }
 
-/* 第 8 页：总结 + 行动 */
+/* 第 8 页：彩蛋 · 适合养在哪 */
+function easterEggPage(r) {
+  return `
+    <div class="page">
+      <div class="page-eyebrow">🎁 隐藏彩蛋</div>
+      <h2 class="page-title">你的宠物<br />适合养在哪？</h2>
+      <div class="egg-card">
+        <div class="egg-home">${esc(r.idealHome || "")}</div>
+        <div class="egg-city">📍 ${esc(r.idealCity || "")}</div>
+        <div class="egg-reason">${esc(r.homeReason || "")}</div>
+      </div>
+      <button class="btn-share-page" data-action="share-page">📤 分享这一页</button>
+    </div>`;
+}
+
+/* 第 9 页：总结 + 行动 */
 function finalPage(r) {
   return `
     <div class="page page-final">
@@ -289,6 +317,36 @@ function finalPage(r) {
       </div>
       <p class="final-note">快乐第一，别太当真 🐾</p>
     </div>`;
+}
+
+/* ---------- 翻页音效 / 震动 ---------- */
+function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  return audioCtx;
+}
+function playFlip() {
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  try {
+    if (ctx.state === "suspended") ctx.resume();
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(520, t);
+    osc.frequency.exponentialRampToValueAtTime(880, t + 0.09);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.16, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.16);
+  } catch (e) { /* 忽略音频异常 */ }
+}
+function vibrate() {
+  try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { /* 忽略 */ }
 }
 
 /* ---------- 雷达图 ---------- */
@@ -342,11 +400,12 @@ $("reportStage").addEventListener("click", (e) => {
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
   const action = btn.dataset.action;
-  if (action === "share") openShare();
+  if (action === "share") openShare(0);
   else if (action === "retake") retake();
+  else if (action === "share-page") openShare(currentPage);
 });
 
-/* ---------- 分享海报生成 ---------- */
+/* ---------- 分享：总海报 ---------- */
 function generatePoster() {
   if (!lastResult) return;
   const r = lastResult;
@@ -373,10 +432,7 @@ function generatePoster() {
   ctx.fillText("🐾 隐藏人格揭晓 🐾", W / 2, 78);
 
   const img = new Image();
-  img.onload = () => {
-    drawPosterBody(ctx, img, r, W, H);
-    $("sharePoster").src = canvas.toDataURL("image/png");
-  };
+  img.onload = () => { drawPosterBody(ctx, img, r, W, H); $("sharePoster").src = canvas.toDataURL("image/png"); };
   img.onerror = () => { drawPosterBody(ctx, null, r, W, H); $("sharePoster").src = canvas.toDataURL("image/png"); };
   img.src = photoDataUrl;
 }
@@ -446,6 +502,190 @@ function drawPosterBody(ctx, img, r, W, H) {
   ctx.globalAlpha = 1;
 }
 
+/* ---------- 分享：每页专属海报 ---------- */
+function pagePosterData(idx, r) {
+  const s = r.scores || {};
+  switch (idx) {
+    case 1: return { eyebrow: "六维人格画像", title: "它的六维宇宙", lines: DIMENSIONS.map((d) => d + "  " + (s[d] ?? 50)) };
+    case 2: return { eyebrow: "性格关键词", title: "贴在它身上的标签", lines: [...(r.tags || []), ...(r.comments || [])].filter(Boolean) };
+    case 3: return { eyebrow: "它的内心世界", title: "其实它每天都在想这些", lines: [r.monologue, "💬 " + r.catchphrase, "🤫 " + r.secret].filter(Boolean) };
+    case 4: return { eyebrow: "前世今生", title: "上辈子的它", lines: [r.pastLife, r.pastLifeStory].filter(Boolean) };
+    case 5: return { eyebrow: "在它眼里你是谁", title: "它有多依赖你", lines: [r.howItSeesYou].filter(Boolean) };
+    case 6: return { eyebrow: "相处指南", title: "读懂它就这几招", lines: [r.advice, "🎯 " + r.talents].filter(Boolean) };
+    case 7: return { eyebrow: "隐藏彩蛋", title: "它适合养在哪", lines: [r.idealHome, "📍 " + r.idealCity, r.homeReason].filter(Boolean) };
+    default: return { eyebrow: "", title: "", lines: [] };
+  }
+}
+
+function generatePagePoster(idx) {
+  if (!lastResult) return;
+  const r = lastResult;
+  const data = pagePosterData(idx, r);
+  const W = 750, H = 1200;
+  const canvas = $("posterCanvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+
+  const img = new Image();
+  img.onload = () => { drawPagePoster(ctx, img, r, data, W, H); $("sharePoster").src = canvas.toDataURL("image/png"); };
+  img.onerror = () => { drawPagePoster(ctx, null, r, data, W, H); $("sharePoster").src = canvas.toDataURL("image/png"); };
+  img.src = photoDataUrl;
+}
+
+function drawPagePoster(ctx, img, r, data, W, H) {
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#FFB56B");
+  bg.addColorStop(0.55, "#FF8A6B");
+  bg.addColorStop(1, "#FF6B8A");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  [[70, 120, 22], [680, 180, 16], [60, 900, 20], [690, 1000, 14]].forEach(([x, y, rad]) => {
+    ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // 顶部品牌
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 24px 'PingFang SC','Microsoft YaHei',sans-serif";
+  ctx.fillText("🐾 遇见雷达 · 宠物人格测评", W / 2, 62);
+
+  // eyebrow
+  ctx.font = "bold 26px 'PingFang SC','Microsoft YaHei',sans-serif";
+  ctx.globalAlpha = 0.92;
+  ctx.fillText(data.eyebrow || "", W / 2, 116);
+  ctx.globalAlpha = 1;
+
+  // 照片圆形
+  const ph = 132, phY = 142;
+  roundRectPath(ctx, W / 2 - ph / 2, phY, ph, ph, ph / 2);
+  ctx.save();
+  ctx.clip();
+  if (img) {
+    const c = coverRect(img.width, img.height, ph, ph);
+    ctx.drawImage(img, W / 2 - ph / 2 + c.dx, phY + c.dy, c.dw, c.dh);
+  } else {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(W / 2 - ph / 2, phY, ph, ph);
+    ctx.fillStyle = "#ff8a4c";
+    ctx.font = "60px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🐾", W / 2, phY + ph / 2 + 20);
+  }
+  ctx.restore();
+  ctx.strokeStyle = "rgba(255,255,255,0.9)";
+  ctx.lineWidth = 5;
+  roundRectPath(ctx, W / 2 - ph / 2, phY, ph, ph, ph / 2);
+  ctx.stroke();
+
+  // 名字 + 类型
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 30px 'PingFang SC','Microsoft YaHei',sans-serif";
+  ctx.fillText((r.emoji || "🐾") + " " + (r.type || ""), W / 2, 316);
+  ctx.font = "22px 'PingFang SC','Microsoft YaHei',sans-serif";
+  ctx.globalAlpha = 0.85;
+  ctx.fillText("—— " + (r.name || "毛孩子") + " ——", W / 2, 352);
+  ctx.globalAlpha = 1;
+
+  // 大标题
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 42px 'PingFang SC','Microsoft YaHei',sans-serif";
+  wrapText(ctx, data.title || "", W / 2, 406, W - 120, 54);
+
+  // 内容卡
+  const cardX = 70, cardY = 466, cardW = W - 140, cardH = 610;
+  roundRectPath(ctx, cardX, cardY, cardW, cardH, 24);
+  ctx.fillStyle = "rgba(255,255,255,0.96)";
+  ctx.fill();
+
+  ctx.fillStyle = "#57453a";
+  ctx.font = "26px 'PingFang SC','Microsoft YaHei',sans-serif";
+  ctx.textAlign = "center";
+  let curY = cardY + 56;
+  const maxY = cardY + cardH - 36;
+  for (const line of (data.lines || [])) {
+    if (!line) continue;
+    if (curY > maxY) break;
+    curY = wrapText(ctx, String(line), W / 2, curY, cardW - 56, 46);
+    curY += 18;
+  }
+
+  // 底部
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.font = "22px 'PingFang SC','Microsoft YaHei',sans-serif";
+  ctx.globalAlpha = 0.9;
+  ctx.fillText("测测你家毛孩子是什么隐藏人格", W / 2, 1114);
+  ctx.font = "bold 26px 'PingFang SC','Microsoft YaHei',sans-serif";
+  ctx.fillText("🐾 遇见雷达", W / 2, 1150);
+  ctx.globalAlpha = 1;
+}
+
+/* ---------- 分享操作 ---------- */
+function openShare(idx) {
+  shareIdx = idx;
+  if (idx === 0 || idx === pageCount - 1) {
+    generatePoster();
+  } else {
+    generatePagePoster(idx);
+  }
+  $("shareModal").style.display = "flex";
+}
+$("shareClose").addEventListener("click", () => { $("shareModal").style.display = "none"; });
+$("shareModal").addEventListener("click", (e) => {
+  if (e.target === $("shareModal")) $("shareModal").style.display = "none";
+});
+
+$("btnDownload").addEventListener("click", () => {
+  const canvas = $("posterCanvas");
+  const a = document.createElement("a");
+  a.href = canvas.toDataURL("image/png");
+  a.download = "宠物人格测评_" + (lastResult?.name || "毛孩子") + ".png";
+  a.click();
+  toast("海报已保存 📸");
+});
+
+function buildShareText(idx, r) {
+  const s = r?.scores || {};
+  const head = `🐾 我家${r?.species || "毛孩子"}「${r?.name || "它"}」的隐藏人格：${r?.emoji || ""} ${r?.type || ""}`;
+  if (idx === 0 || idx === pageCount - 1) {
+    return head + `！\n${r?.tagline || ""}\n` +
+      `亲密度${s["亲密度"] ?? ""} · 活力值${s["活力值"] ?? ""} · 傲娇度${s["傲娇度"] ?? ""}\n` +
+      `聪明值${s["聪明值"] ?? ""} · 贪吃度${s["贪吃度"] ?? ""} · 独立度${s["独立度"] ?? ""}\n` +
+      `💬 口头禅：「${r?.catchphrase || "……"}」\n` +
+      `快来「遇见雷达」测测你家毛孩子吧 🐾`;
+  }
+  const data = pagePosterData(idx, r);
+  return head + `\n【${data.title}】\n${data.lines.join("\n")}\n快来「遇见雷达」测测你家毛孩子吧 🐾`;
+}
+
+$("btnCopy").addEventListener("click", async () => {
+  const text = buildShareText(shareIdx, lastResult);
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("文案已复制 ✅");
+  } catch {
+    toast("复制失败，请长按文字手动复制");
+  }
+});
+
+/* ---------- 再测一次 ---------- */
+function retake() {
+  clearInterval(window.__loadingTimer);
+  $("dzPreview").style.display = "none";
+  $("dzEmpty").style.display = "block";
+  $("previewImg").src = "";
+  $("petName").value = "";
+  $("petAdj").value = "";
+  photoDataUrl = null; photoBase64 = null; lastResult = null;
+  currentPage = 0; shareIdx = 0;
+  fileInput.value = "";
+  showView("view-home");
+}
+
+/* ---------- 工具 ---------- */
 function roundRectPath(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -475,59 +715,9 @@ function wrapText(ctx, text, cx, y, maxW, lineH) {
     }
   }
   if (line) ctx.fillText(line, cx, curY);
+  return curY;
 }
 
-/* ---------- 分享操作 ---------- */
-function openShare() {
-  $("shareModal").style.display = "flex";
-}
-$("shareClose").addEventListener("click", () => { $("shareModal").style.display = "none"; });
-$("shareModal").addEventListener("click", (e) => {
-  if (e.target === $("shareModal")) $("shareModal").style.display = "none";
-});
-
-$("btnDownload").addEventListener("click", () => {
-  const canvas = $("posterCanvas");
-  const a = document.createElement("a");
-  a.href = canvas.toDataURL("image/png");
-  a.download = "宠物人格测评_" + (lastResult?.name || "毛孩子") + ".png";
-  a.click();
-  toast("海报已保存 📸");
-});
-
-$("btnCopy").addEventListener("click", async () => {
-  const r = lastResult;
-  const scores = r?.scores || {};
-  const text =
-    `🐾 我家${r?.species || "毛孩子"}「${r?.name || "它"}」的隐藏人格揭晓：${r?.emoji || ""} ${r?.type || ""}！\n` +
-    `${r?.tagline || ""}\n` +
-    `亲密度${scores["亲密度"] ?? ""} · 活力值${scores["活力值"] ?? ""} · 傲娇度${scores["傲娇度"] ?? ""}\n` +
-    `聪明值${scores["聪明值"] ?? ""} · 贪吃度${scores["贪吃度"] ?? ""} · 独立度${scores["独立度"] ?? ""}\n` +
-    `💬 它的口头禅：「${r?.catchphrase || "……"}」\n` +
-    `快来「遇见雷达」测测你家毛孩子是什么隐藏人格吧 🐾`;
-  try {
-    await navigator.clipboard.writeText(text);
-    toast("文案已复制 ✅");
-  } catch {
-    toast("复制失败，请长按文字手动复制");
-  }
-});
-
-/* ---------- 再测一次 ---------- */
-function retake() {
-  clearInterval(window.__loadingTimer);
-  $("dzPreview").style.display = "none";
-  $("dzEmpty").style.display = "block";
-  $("previewImg").src = "";
-  $("petName").value = "";
-  $("petAdj").value = "";
-  photoDataUrl = null; photoBase64 = null; lastResult = null;
-  currentPage = 0;
-  fileInput.value = "";
-  showView("view-home");
-}
-
-/* ---------- 工具 ---------- */
 function toast(msg) {
   const t = $("toast");
   t.textContent = msg;
