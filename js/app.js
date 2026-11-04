@@ -1,7 +1,7 @@
 /* ===== 遇见雷达 · 宠物人格测评 前端逻辑 ===== */
 
-// 后端地址：本地联调用 127.0.0.1:9000，部署后改成 FC 的 HTTP 触发器地址
-const API_BASE = "http://127.0.0.1:9000";
+// 后端地址：阿里云函数计算 FC 3.0 的 HTTP 触发器公网地址
+const API_BASE = "https://pet-radar-api-rajzqnsefr.cn-hangzhou.fcapp.run";
 
 const DIMENSIONS = ["亲密度", "活力值", "傲娇度", "聪明值", "贪吃度", "独立度"];
 
