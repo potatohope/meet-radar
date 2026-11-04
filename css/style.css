@@ -61,6 +61,7 @@ main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 8px 16px
 
 /* Drop zone */
 .drop-zone {
+  position: relative;
   display: block;
   border: 2px dashed #f0c9a8;
   border-radius: 16px;
@@ -69,6 +70,17 @@ main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 8px 16px
   overflow: hidden;
   text-align: center;
   transition: border-color .2s, background .2s;
+}
+/* 关键：file input 透明铺满整个上传区，用户点击的永远是原生 input（iOS 兼容），
+   而非依赖 <label> 转发（iOS Safari 对 display:none 的 file input 转发不稳定） */
+#fileInput {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
 }
 .drop-zone:hover, .drop-zone.drag { border-color: var(--primary); background: #fff3e8; }
 .dz-empty { padding: 34px 16px; }
