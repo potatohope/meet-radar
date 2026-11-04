@@ -29,16 +29,17 @@ function showView(id) {
 const dropZone = $("dropZone");
 const fileInput = $("fileInput");
 
-// 说明：<label class="drop-zone"> 已包裹 <input type="file">，点击 label 会原生触发文件选择，
-// 因此这里不再手动 fileInput.click()（否则移动端/iOS 会双重触发，选择器一闪而过甚至打不开）。
-dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("drag"); });
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag"));
-dropZone.addEventListener("drop", (e) => {
-  e.preventDefault(); dropZone.classList.remove("drag");
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
+// file input 透明铺满整个上传区（见 CSS），点击即原生触发文件选择，iOS 兼容、不依赖 label 转发。
 fileInput.addEventListener("change", () => {
   if (fileInput.files.length) handleFile(fileInput.files[0]);
+});
+
+// 拖拽上传（桌面端）：input 覆盖在最上层，需在 input 上阻止默认并处理 drop
+fileInput.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("drag"); });
+fileInput.addEventListener("dragleave", () => dropZone.classList.remove("drag"));
+fileInput.addEventListener("drop", (e) => {
+  e.preventDefault(); dropZone.classList.remove("drag");
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
 });
 
 function handleFile(file) {
