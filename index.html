@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>遇见雷达 · 宠物人格测评</title>
+  <meta name="description" content="上传你家毛孩子的照片，AI 一眼看穿它的隐藏人格。测测它是高冷霸总还是治愈小太阳？" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-logo">🐾</span>
+      <span class="brand-name">遇见雷达</span>
+    </div>
+    <div class="brand-sub">宠物人格测评</div>
+  </header>
+
+  <main>
+    <!-- 首页：上传 -->
+    <section id="view-home" class="view">
+      <div class="hero">
+        <h1 class="hero-title">你家毛孩子，<br />藏着什么<em>隐藏人格</em>？</h1>
+        <p class="hero-sub">上传一张照片，AI 从神态、眼神、气质里，一眼看穿它的真实人设。</p>
+      </div>
+
+      <div class="card upload-card">
+        <label class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" hidden />
+          <div class="dz-preview" id="dzPreview" style="display:none;">
+            <img id="previewImg" alt="宠物照片预览" />
+            <span class="dz-change">点击更换照片</span>
+          </div>
+          <div class="dz-empty" id="dzEmpty">
+            <span class="dz-icon">📸</span>
+            <span class="dz-title">点击 / 拖拽上传照片</span>
+            <span class="dz-tip">支持猫咪、狗狗、兔兔、仓鼠…</span>
+          </div>
+        </label>
+
+        <div class="form-fields">
+          <div class="field">
+            <label for="petName">它叫什么名字？</label>
+            <input type="text" id="petName" placeholder="例如：豆包" maxlength="12" />
+          </div>
+          <div class="field">
+            <label for="petSpecies">它是什么物种？</label>
+            <div class="species-pills" id="speciesPills">
+              <button type="button" class="pill active" data-species="猫咪">🐱 猫咪</button>
+              <button type="button" class="pill" data-species="狗狗">🐶 狗狗</button>
+              <button type="button" class="pill" data-species="兔兔">🐰 兔兔</button>
+              <button type="button" class="pill" data-species="其他小可爱">✨ 其他</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="petAdj">用一个词形容它（选填）</label>
+            <input type="text" id="petAdj" placeholder="例如：憨憨、傲娇、粘人精" maxlength="10" />
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btnStart">开始测评 🐾</button>
+        <p class="upload-note">照片仅用于本次测评，不会公开或存储。</p>
+      </div>
+    </section>
+
+    <!-- 加载中 -->
+    <section id="view-loading" class="view" style="display:none;">
+      <div class="loading-box">
+        <div class="paw-loader">
+          <span>🐾</span><span>🐾</span><span>🐾</span>
+        </div>
+        <p class="loading-text" id="loadingText">正在观察它的眼神…</p>
+        <p class="loading-sub">AI 正在分析神态、气质与隐藏人设</p>
+      </div>
+    </section>
+
+    <!-- 结果页 -->
+    <section id="view-result" class="view" style="display:none;">
+      <div class="result-card" id="resultCard">
+        <div class="rc-photo-wrap">
+          <img id="rcPhoto" class="rc-photo" alt="宠物照片" />
+          <span class="rc-type-badge" id="rcEmoji"></span>
+        </div>
+
+        <div class="rc-head">
+          <h2 class="rc-type" id="rcType"></h2>
+          <p class="rc-tagline" id="rcTagline"></p>
+        </div>
+
+        <div class="rc-radar">
+          <canvas id="radarChart"></canvas>
+        </div>
+
+        <div class="rc-block">
+          <h3 class="rc-block-title">它在想什么</h3>
+          <ul class="rc-comments" id="rcComments"></ul>
+        </div>
+
+        <div class="rc-block">
+          <h3 class="rc-block-title">前世身份</h3>
+          <p class="rc-pastlife" id="rcPastLife"></p>
+        </div>
+
+        <div class="rc-block">
+          <h3 class="rc-block-title">相处指南</h3>
+          <p class="rc-advice" id="rcAdvice"></p>
+        </div>
+
+        <div class="rc-block rc-monologue">
+          <h3 class="rc-block-title">它的内心独白</h3>
+          <p class="rc-monologue-text" id="rcMonologue"></p>
+        </div>
+
+        <div class="rc-summary" id="rcSummary"></div>
+
+        <div class="rc-actions">
+          <button class="btn-primary" id="btnShare">分享结果</button>
+          <button class="btn-ghost" id="btnRetake">再测一次</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>遇见雷达 · 宠物人格测评 —— 快乐第一，别太当真 🐾</p>
+  </footer>
+
+  <!-- 分享弹窗 -->
+  <div class="modal-mask" id="shareModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>晒出它的隐藏人格</h3>
+        <button class="modal-close" id="shareClose">×</button>
+      </div>
+      <div class="modal-body">
+        <img id="sharePoster" class="share-poster" alt="分享海报" />
+        <div class="share-actions">
+          <button class="btn-primary" id="btnDownload">保存分享图</button>
+          <button class="btn-ghost" id="btnCopy">复制文案</button>
+        </div>
+        <p class="share-tip">长按海报可直接保存到相册</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" style="display:none;"></div>
+
+  <canvas id="posterCanvas" style="display:none;"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# 测试图片与生成产物
+test/
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Python
+__pycache__/
+*.pyc
+
+# Serverless Devs 缓存
+.s/
+.s-data/
+
+# 系统文件
+.DS_Store
+Thumbs.db
