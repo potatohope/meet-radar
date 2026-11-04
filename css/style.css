@@ -130,48 +130,127 @@ main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 8px 16px
 .loading-text { margin-top: 26px; font-size: 18px; font-weight: 700; }
 .loading-sub { margin-top: 10px; color: var(--ink-2); font-size: 14px; }
 
-/* Result card */
-.result-card {
+/* ===== 多页报告 ===== */
+.report { max-width: 640px; margin: 0 auto; padding: 4px 0 40px; }
+
+.report-progress {
+  display: flex; align-items: center; gap: 12px; padding: 6px 4px 16px;
+}
+.progress-track {
+  flex: 1; height: 6px; background: #f3e2d0; border-radius: 999px; overflow: hidden;
+}
+.progress-fill {
+  display: block; height: 100%; width: 12.5%;
+  background: linear-gradient(90deg, var(--primary), var(--pink));
+  border-radius: 999px; transition: width .4s ease;
+}
+.progress-label { font-size: 13px; color: var(--ink-2); font-weight: 600; min-width: 44px; text-align: right; }
+
+.report-stage { position: relative; }
+.report-stage.anim .page { animation: pageIn .4s ease; }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+
+.page {
   background: var(--card); border-radius: var(--radius);
   box-shadow: var(--shadow); border: 1px solid var(--border);
-  overflow: hidden;
-}
-.rc-photo-wrap { position: relative; }
-.rc-photo { width: 100%; height: 260px; object-fit: cover; display: block; }
-.rc-type-badge {
-  position: absolute; right: 16px; bottom: -24px; font-size: 44px;
-  width: 72px; height: 72px; line-height: 72px; text-align: center;
-  background: #fff; border-radius: 50%; box-shadow: 0 6px 18px rgba(0,0,0,.12);
-}
-.rc-head { padding: 34px 24px 0; }
-.rc-type { font-size: 26px; font-weight: 800; }
-.rc-tagline { margin-top: 6px; color: var(--ink-2); font-size: 15px; }
-
-.rc-radar { padding: 12px 16px; }
-.rc-radar canvas { max-height: 260px; }
-
-.rc-block { padding: 14px 24px 0; }
-.rc-block-title {
-  font-size: 14px; font-weight: 700; color: var(--primary);
-  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
-}
-.rc-block-title::before { content: ""; width: 6px; height: 16px; background: var(--primary); border-radius: 3px; }
-
-.rc-comments { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.rc-comments li {
-  background: var(--bg-2); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6;
+  padding: 30px 24px 34px; text-align: center;
 }
 
-.rc-pastlife, .rc-advice, .rc-monologue-text { font-size: 14px; line-height: 1.7; color: #57453a; }
+.page-eyebrow { font-size: 13px; color: var(--primary); font-weight: 700; letter-spacing: 1px; }
+.page-title { margin-top: 14px; font-size: 26px; line-height: 1.4; font-weight: 800; }
 
-.rc-monologue { background: var(--bg-2); margin: 16px 24px 0; border-radius: 14px; padding: 14px 16px; }
-.rc-monologue .rc-block-title::before { display: none; }
-.rc-monologue-text { font-style: italic; }
+/* 第 1 页：揭晓 */
+.page-cover { padding-top: 38px; }
+.cover-photo { position: relative; display: inline-block; margin-top: 24px; }
+.cover-photo img {
+  width: 200px; height: 200px; object-fit: cover; border-radius: 50%;
+  border: 5px solid #fff; box-shadow: 0 12px 30px rgba(240,140,70,.28);
+}
+.cover-emoji {
+  position: absolute; right: -4px; bottom: 4px; width: 60px; height: 60px;
+  line-height: 60px; font-size: 32px; text-align: center;
+  background: #fff; border-radius: 50%; box-shadow: 0 6px 18px rgba(0,0,0,.14);
+}
+.cover-type { margin-top: 28px; font-size: 34px; font-weight: 800; color: var(--primary-deep); }
+.cover-tagline { margin-top: 10px; color: var(--ink-2); font-size: 16px; }
+.cover-name { margin-top: 14px; color: var(--ink-2); font-size: 15px; }
 
-.rc-summary { margin: 18px 24px 0; padding: 14px 16px; border-radius: 14px; background: linear-gradient(135deg, #fff3e6, #ffe4ee); font-size: 14px; line-height: 1.7; }
+/* 第 2 页：画像 */
+.radar-wrap { margin-top: 18px; }
+.radar-wrap canvas { max-height: 280px; }
+.dim-list { margin-top: 8px; text-align: left; display: flex; flex-direction: column; gap: 10px; }
+.dim-item {
+  background: var(--bg-2); border-radius: 14px; padding: 12px 16px;
+}
+.dim-top { display: flex; align-items: center; justify-content: space-between; }
+.dim-name { font-size: 15px; font-weight: 700; }
+.dim-score { font-size: 15px; font-weight: 800; color: var(--primary); }
+.dim-desc { margin-top: 5px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 
-.rc-actions { display: flex; flex-direction: column; gap: 10px; padding: 22px 24px 26px; }
-.rc-actions .btn-primary { margin-top: 0; }
+/* 第 3 页：标签 */
+.tag-wall { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.tag {
+  padding: 10px 18px; border-radius: 999px; font-size: 15px; font-weight: 600;
+  background: linear-gradient(135deg, #fff3e6, #ffe4ee); color: var(--primary-deep);
+  border: 1px solid #f7dcc8;
+}
+.comment-list { list-style: none; margin-top: 26px; text-align: left; display: flex; flex-direction: column; gap: 10px; }
+.comment-list li {
+  background: var(--bg-2); border-radius: 12px; padding: 13px 16px; font-size: 14px; line-height: 1.6;
+}
+
+/* 第 4 页：内心世界 */
+.monologue-card {
+  margin-top: 26px; padding: 22px 20px; border-radius: 16px; font-size: 16px; line-height: 1.7;
+  background: linear-gradient(135deg, #fff3e6, #ffe4ee); color: #57453a; font-style: italic;
+}
+.mini-card {
+  margin-top: 14px; display: flex; align-items: flex-start; gap: 12px; text-align: left;
+  background: var(--bg-2); border-radius: 14px; padding: 14px 16px;
+}
+.mini-ico { font-size: 26px; line-height: 1; }
+.mini-card b { display: block; font-size: 13px; color: var(--primary); }
+.mini-card p { margin-top: 4px; font-size: 14px; line-height: 1.6; color: #57453a; }
+
+/* 第 5 页：前世今生 */
+.pastlife-badge {
+  margin-top: 28px; padding: 20px; border-radius: 16px; font-size: 19px; font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--pink)); color: #fff;
+  box-shadow: 0 10px 26px rgba(255,122,82,.32);
+}
+.story { margin-top: 20px; font-size: 15px; line-height: 1.8; color: #57453a; text-align: left; }
+
+/* 第 6 页：在它眼里你是谁 */
+.see-card {
+  margin-top: 28px; padding: 26px 22px; border-radius: 16px; font-size: 17px; line-height: 1.8;
+  background: linear-gradient(135deg, #fff3e6, #ffe4ee); color: #57453a;
+}
+
+/* 第 7 页：相处指南 */
+.advice-card {
+  margin-top: 26px; padding: 20px 18px; border-radius: 16px; font-size: 15px; line-height: 1.8;
+  background: var(--bg-2); color: #57453a; text-align: left;
+}
+
+/* 第 8 页：总结 */
+.summary-card {
+  margin-top: 26px; padding: 22px 20px; border-radius: 16px; font-size: 15px; line-height: 1.8;
+  background: linear-gradient(135deg, #fff3e6, #ffe4ee); color: #57453a;
+}
+.final-actions { margin-top: 26px; display: flex; flex-direction: column; gap: 10px; }
+.final-actions .btn-primary, .final-actions .btn-ghost { margin-top: 0; }
+.final-note { margin-top: 16px; font-size: 12px; color: var(--ink-2); }
+
+/* 导航 */
+.report-nav {
+  margin-top: 18px; display: flex; gap: 10px; align-items: stretch;
+}
+.report-nav .btn-primary { margin-top: 0; flex: 2; }
+.report-nav .btn-ghost { flex: 1; text-align: center; }
+.nav-btn { padding: 14px 18px; }
 
 /* Footer */
 .site-footer { text-align: center; padding: 18px; color: var(--ink-2); font-size: 12px; }
