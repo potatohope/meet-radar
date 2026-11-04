@@ -75,48 +75,24 @@
       </div>
     </section>
 
-    <!-- 结果页 -->
+    <!-- 结果页：多页翻页式报告 -->
     <section id="view-result" class="view" style="display:none;">
-      <div class="result-card" id="resultCard">
-        <div class="rc-photo-wrap">
-          <img id="rcPhoto" class="rc-photo" alt="宠物照片" />
-          <span class="rc-type-badge" id="rcEmoji"></span>
+      <div class="report">
+        <!-- 顶部进度 -->
+        <div class="report-progress">
+          <div class="progress-track"><span class="progress-fill" id="progressFill"></span></div>
+          <span class="progress-label" id="progressLabel">1 / 8</span>
         </div>
 
-        <div class="rc-head">
-          <h2 class="rc-type" id="rcType"></h2>
-          <p class="rc-tagline" id="rcTagline"></p>
+        <!-- 页面容器 -->
+        <div class="report-stage" id="reportStage">
+          <!-- 每页由 JS 渲染 -->
         </div>
 
-        <div class="rc-radar">
-          <canvas id="radarChart"></canvas>
-        </div>
-
-        <div class="rc-block">
-          <h3 class="rc-block-title">它在想什么</h3>
-          <ul class="rc-comments" id="rcComments"></ul>
-        </div>
-
-        <div class="rc-block">
-          <h3 class="rc-block-title">前世身份</h3>
-          <p class="rc-pastlife" id="rcPastLife"></p>
-        </div>
-
-        <div class="rc-block">
-          <h3 class="rc-block-title">相处指南</h3>
-          <p class="rc-advice" id="rcAdvice"></p>
-        </div>
-
-        <div class="rc-block rc-monologue">
-          <h3 class="rc-block-title">它的内心独白</h3>
-          <p class="rc-monologue-text" id="rcMonologue"></p>
-        </div>
-
-        <div class="rc-summary" id="rcSummary"></div>
-
-        <div class="rc-actions">
-          <button class="btn-primary" id="btnShare">分享结果</button>
-          <button class="btn-ghost" id="btnRetake">再测一次</button>
+        <!-- 底部导航 -->
+        <div class="report-nav" id="reportNav">
+          <button class="btn-ghost nav-btn" id="btnPrev" style="display:none;">‹ 上一页</button>
+          <button class="btn-primary nav-btn" id="btnNext">下一页 ›</button>
         </div>
       </div>
     </section>
